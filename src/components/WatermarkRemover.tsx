@@ -1,18 +1,64 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, Download, Sparkles, RefreshCw, CheckCircle2, ShieldCheck, Zap, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  UploadCloud,
+  Download,
+  Sparkles,
+  RefreshCw,
+  CheckCircle2,
+  ShieldCheck,
+  Zap,
+  Image as ImageIcon,
+  Sliders,
+  RotateCcw,
+  Check,
+  AlertCircle
+} from 'lucide-react';
 import CompareSlider from './CompareSlider';
-import { removeGeminiWatermark, ProcessResult } from '@/lib/watermarkEngine';
+import {
+  removeGeminiWatermark,
+  ProcessResult,
+  WatermarkSettings,
+  getWatermarkInfo
+} from '@/lib/watermarkEngine';
 
 export default function WatermarkRemover() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [currentImageElement, setCurrentImageElement] = useState<HTMLImageElement | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<ProcessResult | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Tuner state
+  const [showTuner, setShowTuner] = useState(false);
+  const [tunerSettings, setTunerSettings] = useState<WatermarkSettings>({
+    offsetX: 0,
+    offsetY: 0,
+    sizeScale: 1.0,
+    gain: 0.6,
+  });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processLoadedImage = useCallback(async (
+    img: HTMLImageElement,
+    customSettings?: Partial<WatermarkSettings>
+  ) => {
+    setIsProcessing(true);
+    setErrorMessage(null);
+    try {
+      const res = await removeGeminiWatermark(img, customSettings);
+      setResult(res);
+      setTunerSettings(res.currentSettings);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || 'Failed to process watermark.');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
 
   const processImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -29,14 +75,8 @@ export default function WatermarkRemover() {
       reader.onload = (e) => {
         const img = new Image();
         img.onload = async () => {
-          try {
-            const res = await removeGeminiWatermark(img);
-            setResult(res);
-          } catch (err: any) {
-            setErrorMessage(err.message || 'Failed to process watermark.');
-          } finally {
-            setIsProcessing(false);
-          }
+          setCurrentImageElement(img);
+          await processLoadedImage(img);
         };
         img.src = e.target?.result as string;
       };
@@ -88,6 +128,75 @@ export default function WatermarkRemover() {
     return () => window.removeEventListener('paste', handlePaste);
   }, []);
 
+  // Live Reprocess on Tuner Change
+  const handleSettingChange = (key: keyof WatermarkSettings, value: number) => {
+    const updated = { ...tunerSettings, [key]: value };
+    setTunerSettings(updated);
+    if (currentImageElement) {
+      processLoadedImage(currentImageElement, updated);
+    }
+  };
+
+  const applyPreset = (presetType: 'new' | 'classic' | 'fixed_inset' | 'fixed_corner') => {
+    if (!currentImageElement) return;
+    const w = currentImageElement.naturalWidth || currentImageElement.width;
+    const h = currentImageElement.naturalHeight || currentImageElement.height;
+    const minDim = Math.min(w, h);
+    const baseRatio = minDim / 1536;
+    const base = getWatermarkInfo(w, h);
+
+    let newSettings: WatermarkSettings;
+
+    if (presetType === 'new') {
+      const m = Math.max(8, Math.round(192 * baseRatio));
+      newSettings = {
+        offsetX: (w - m - base.size) - base.x,
+        offsetY: (h - m - base.size) - base.y,
+        sizeScale: 1.0,
+        gain: 0.6,
+      };
+    } else if (presetType === 'classic') {
+      const m = Math.max(8, Math.round(64 * baseRatio));
+      newSettings = {
+        offsetX: (w - m - base.size) - base.x,
+        offsetY: (h - m - base.size) - base.y,
+        sizeScale: 1.0,
+        gain: 1.0,
+      };
+    } else if (presetType === 'fixed_inset') {
+      const m = minDim >= 1400 ? 192 : Math.round(128 * Math.max(0.5, minDim / 1024));
+      newSettings = {
+        offsetX: (w - m - 96) - base.x,
+        offsetY: (h - m - 96) - base.y,
+        sizeScale: Math.round((96 / base.size) * 100) / 100,
+        gain: 0.6,
+      };
+    } else {
+      const m = minDim >= 1024 ? 64 : 32;
+      newSettings = {
+        offsetX: (w - m - 96) - base.x,
+        offsetY: (h - m - 96) - base.y,
+        sizeScale: Math.round((96 / base.size) * 100) / 100,
+        gain: 1.0,
+      };
+    }
+
+    setTunerSettings(newSettings);
+    processLoadedImage(currentImageElement, newSettings);
+  };
+
+  const resetToAutoDetected = () => {
+    if (!result || !currentImageElement) return;
+    const autoSettings: WatermarkSettings = {
+      offsetX: result.detected.offsetX,
+      offsetY: result.detected.offsetY,
+      sizeScale: result.detected.sizeScale,
+      gain: result.detected.gain,
+    };
+    setTunerSettings(autoSettings);
+    processLoadedImage(currentImageElement, autoSettings);
+  };
+
   const downloadCleanedImage = () => {
     if (!result) return;
     const a = document.createElement('a');
@@ -101,62 +210,27 @@ export default function WatermarkRemover() {
 
   const resetAll = () => {
     setSelectedFile(null);
+    setCurrentImageElement(null);
     setResult(null);
     setErrorMessage(null);
+    setShowTuner(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Sample demo image generator for quick testing
-  const loadSampleDemo = () => {
+  // Sample demo image loader using real Gemini test images
+  const loadRealGeminiSample = async (samplePath: string, sampleName: string) => {
     setIsProcessing(true);
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Create a beautiful AI cyberpunk gradient scene
-    const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
-    grad.addColorStop(0, '#1e1b4b');
-    grad.addColorStop(0.5, '#312e81');
-    grad.addColorStop(1, '#0f172a');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 1024, 1024);
-
-    // Draw some stylized geometry / moon
-    ctx.fillStyle = '#6366f1';
-    ctx.beginPath();
-    ctx.arc(512, 450, 220, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#f43f5e';
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillText('Gemini AI Generated Art (Demo)', 240, 750);
-
-    // Draw realistic Gemini Sparkle watermark in bottom-right corner (size 96px, pad 32px)
-    const starX = 1024 - 96 - 32 + 48;
-    const starY = 1024 - 96 - 32 + 48;
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 12;
-
-    // 4-pointed star
-    ctx.beginPath();
-    ctx.moveTo(starX, starY - 36);
-    ctx.quadraticCurveTo(starX, starY, starX + 36, starY);
-    ctx.quadraticCurveTo(starX, starY, starX, starY + 36);
-    ctx.quadraticCurveTo(starX, starY, starX - 36, starY);
-    ctx.quadraticCurveTo(starX, starY, starX, starY - 36);
-    ctx.fill();
-    ctx.restore();
-
-    canvas.toBlob(async (blob) => {
-      if (blob) {
-        const file = new File([blob], 'gemini_demo_sample.png', { type: 'image/png' });
-        processImageFile(file);
-      }
-    });
+    setErrorMessage(null);
+    try {
+      const res = await fetch(samplePath);
+      const blob = await res.blob();
+      const file = new File([blob], sampleName, { type: 'image/png' });
+      processImageFile(file);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage('Could not load sample image.');
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -199,7 +273,7 @@ export default function WatermarkRemover() {
               </div>
 
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                {isProcessing ? 'Removing Watermark Locally...' : 'Drop your Gemini image here, or browse'}
+                {isProcessing ? 'Detecting & Removing Watermark...' : 'Drop your Gemini image here, or browse'}
               </h2>
               <p className="text-sm text-slate-400 max-w-md mx-auto mb-6">
                 Supports PNG, JPG, WebP. Press <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono text-xs">Cmd+V</kbd> or <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono text-xs">Ctrl+V</kbd> to paste directly from your clipboard!
@@ -218,17 +292,30 @@ export default function WatermarkRemover() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    loadSampleDemo();
+                    loadRealGeminiSample('/assets/test_img1.png', 'gemini_sample_portrait.png');
                   }}
                   className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-medium text-sm transition-all flex items-center gap-2"
                 >
                   <Sparkles className="w-4 h-4 text-violet-400" />
-                  Try With Demo Sample
+                  Try Real Sample 1
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    loadRealGeminiSample('/assets/test_img2.png', 'gemini_sample_render.png');
+                  }}
+                  className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-medium text-sm transition-all flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  Try Real Sample 2
                 </button>
               </div>
 
               {errorMessage && (
-                <div className="mt-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+                <div className="mt-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
                   {errorMessage}
                 </div>
               )}
@@ -242,7 +329,7 @@ export default function WatermarkRemover() {
               </div>
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-violet-400 shrink-0" />
-                <span>Zero Server Uploads (Client-Side HTML5)</span>
+                <span>Zero Server Uploads (Client-Side HTML5 Canvas)</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Zap className="w-4 h-4 text-amber-400 shrink-0" />
@@ -255,35 +342,191 @@ export default function WatermarkRemover() {
           <div>
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 mb-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Watermark Removed in {result.processingTimeMs}ms
-                </span>
-                <h3 className="text-lg font-bold text-white">
-                  Original Resolution: {result.width} × {result.height}px (100% Lossless)
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Watermark Removed in {result.processingTimeMs}ms
+                  </span>
+
+                  {result.detected.matchFound ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-500/10 border border-violet-500/30 text-violet-300">
+                      <Sparkles className="w-3 h-3 text-violet-400" />
+                      Auto-Detected: {result.detected.name} ({Math.round(result.detected.score * 100)}% match)
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                      <AlertCircle className="w-3 h-3 text-amber-400" />
+                      Applied Standard Preset ({result.detected.name})
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-base sm:text-lg font-bold text-white">
+                  Resolution: {result.width} × {result.height}px (100% Lossless)
                 </h3>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowTuner(!showTuner)}
+                  className={`px-3.5 py-2 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    showTuner
+                      ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-600/25'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  {showTuner ? 'Hide Fine-Tune' : 'Fine-Tune Position'}
+                </button>
+
                 <button
                   type="button"
                   onClick={resetAll}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all flex items-center gap-1.5"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  Process Another
+                  Upload Another
                 </button>
 
                 <button
                   type="button"
                   onClick={downloadCleanedImage}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  Download Cleaned Image
+                  Download PNG
                 </button>
               </div>
             </div>
+
+            {/* Fine-Tuner Drawer */}
+            {showTuner && (
+              <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-slate-950/70 border border-slate-800 transition-all">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
+                    <Sliders className="w-4 h-4 text-violet-400" />
+                    Watermark Position &amp; Scale Fine-Tuner
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetToAutoDetected}
+                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Reset to Auto
+                  </button>
+                </div>
+
+                {/* Preset Fast Switch */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-slate-400 mb-2">
+                    Quick Preset Select:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => applyPreset('new')}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all"
+                    >
+                      Gemini Adaptive Inset (12.5%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset('classic')}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all"
+                    >
+                      Classic Corner (4.16%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset('fixed_inset')}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all"
+                    >
+                      Fixed 96px Inset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset('fixed_corner')}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition-all"
+                    >
+                      Fixed 96px Corner
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 Interactive Sliders */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Offset X */}
+                  <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                    <div className="flex justify-between text-xs text-slate-400 mb-1">
+                      <span>Horizontal (X):</span>
+                      <span className="font-mono text-violet-400">{tunerSettings.offsetX}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={-160}
+                      max={160}
+                      step={2}
+                      value={tunerSettings.offsetX}
+                      onChange={(e) => handleSettingChange('offsetX', parseInt(e.target.value, 10))}
+                      className="w-full accent-violet-500 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Offset Y */}
+                  <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                    <div className="flex justify-between text-xs text-slate-400 mb-1">
+                      <span>Vertical (Y):</span>
+                      <span className="font-mono text-violet-400">{tunerSettings.offsetY}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={-160}
+                      max={160}
+                      step={2}
+                      value={tunerSettings.offsetY}
+                      onChange={(e) => handleSettingChange('offsetY', parseInt(e.target.value, 10))}
+                      className="w-full accent-violet-500 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Size Scale */}
+                  <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                    <div className="flex justify-between text-xs text-slate-400 mb-1">
+                      <span>Size Scale:</span>
+                      <span className="font-mono text-violet-400">{tunerSettings.sizeScale}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0.4}
+                      max={2.2}
+                      step={0.05}
+                      value={tunerSettings.sizeScale}
+                      onChange={(e) => handleSettingChange('sizeScale', parseFloat(e.target.value))}
+                      className="w-full accent-violet-500 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Alpha Gain / Strength */}
+                  <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                    <div className="flex justify-between text-xs text-slate-400 mb-1">
+                      <span>Strength (Gain):</span>
+                      <span className="font-mono text-violet-400">{tunerSettings.gain}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0.2}
+                      max={1.5}
+                      step={0.05}
+                      value={tunerSettings.gain}
+                      onChange={(e) => handleSettingChange('gain', parseFloat(e.target.value))}
+                      className="w-full accent-violet-500 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Interactive Before/After Split Slider */}
             <CompareSlider
@@ -291,8 +534,12 @@ export default function WatermarkRemover() {
               cleanedUrl={result.cleanedImageDataUrl}
             />
 
-            <div className="mt-4 text-center text-xs text-slate-500">
-              Drag the center slider left and right to inspect the pixel-level restoration.
+            <div className="mt-4 flex flex-wrap items-center justify-between text-xs text-slate-400">
+              <span>Drag the center line left/right to inspect the restoration.</span>
+              <span className="text-slate-500">
+                Watermark box at: ({result.watermarkBox.x}, {result.watermarkBox.y}) · Size:{' '}
+                {result.watermarkBox.width}px
+              </span>
             </div>
           </div>
         )}
