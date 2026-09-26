@@ -63,8 +63,28 @@ export default function LocalizedHome({ params }: Props) {
     notFound();
   }
 
+  const localizedSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    'name': `GeminiWatermarkAI (${loc.name})`,
+    'operatingSystem': 'All modern browsers',
+    'applicationCategory': 'MultimediaApplication',
+    'offers': {
+      '@type': 'Offer',
+      'price': '0',
+      'priceCurrency': 'USD'
+    },
+    'description': t.metaDesc,
+    'url': `https://geminiwatermarkai.online/${locale}`,
+    'inLanguage': locale
+  };
+
   return (
     <div className="relative overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localizedSchema) }}
+      />
       {/* Background radial gradient blobs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-violet-600/20 via-indigo-600/10 to-transparent blur-[120px] pointer-events-none -z-10" />
 

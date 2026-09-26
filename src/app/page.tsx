@@ -8,9 +8,52 @@ import AdsterraNative from '@/components/ads/AdsterraNative';
 import AdsterraRectangle from '@/components/ads/AdsterraRectangle';
 import { Sparkles, ExternalLink, Zap } from 'lucide-react';
 
+const homeFaqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': [
+    {
+      '@type': 'Question',
+      'name': 'Is this tool really 100% free with no paywall or trial period?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'Yes, absolutely. Unlike services that bait users with free and require a $1 trial or subscription, GeminiWatermarkAI is permanently free. The computation runs entirely on your local machine using standard HTML5 Canvas.'
+      }
+    },
+    {
+      '@type': 'Question',
+      'name': 'Are my images uploaded to any server or cloud database?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'No. Your images never leave your browser. All pixel transformations and reverse alpha blending calculations take place locally inside your browser memory using JavaScript and HTML5 Canvas. Your privacy is 100% protected.'
+      }
+    },
+    {
+      '@type': 'Question',
+      'name': 'How does this compare to AI inpainting (e.g. Photoshop or Stable Diffusion)?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'AI inpainting attempts to guess and re-draw what lies under the watermark, frequently causing blurry patches and hallucinations. Our tool uses mathematically exact Reverse Alpha Blending to algebraically invert the linear transparency equation, restoring original pixel values without blur.'
+      }
+    },
+    {
+      '@type': 'Question',
+      'name': 'Does this remove Google invisible SynthID watermark?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'No. This tool only removes the visible cosmetic sparkle icon in the corner. SynthID is an invisible, cryptographic watermark embedded in the image latents for digital provenance.'
+      }
+    }
+  ]
+};
+
 export default function Home() {
   return (
     <div className="relative overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeFaqSchema) }}
+      />
       {/* Background radial gradient blobs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-violet-600/20 via-indigo-600/10 to-transparent blur-[120px] pointer-events-none -z-10" />
 

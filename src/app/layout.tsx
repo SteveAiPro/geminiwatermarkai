@@ -23,6 +23,17 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: "https://geminiwatermarkai.online",
+    languages: {
+      "x-default": "https://geminiwatermarkai.online",
+      "en": "https://geminiwatermarkai.online",
+      "zh": "https://geminiwatermarkai.online/zh",
+      "ja": "https://geminiwatermarkai.online/ja",
+      "es": "https://geminiwatermarkai.online/es",
+      "de": "https://geminiwatermarkai.online/de",
+      "fr": "https://geminiwatermarkai.online/fr",
+      "pt": "https://geminiwatermarkai.online/pt",
+      "ko": "https://geminiwatermarkai.online/ko",
+    },
   },
   openGraph: {
     title: "Free Gemini Watermark Remover Online - Lossless & 100% Free",
