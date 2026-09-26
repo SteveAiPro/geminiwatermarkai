@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AdsterraScripts from "@/components/ads/AdsterraScripts";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -94,6 +95,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-violet-500 selection:text-white`}>
+        <AdsterraScripts />
         <Header />
         <main className="flex-1">
           {children}
