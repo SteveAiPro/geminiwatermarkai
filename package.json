@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/auto-submit-sitemap.mjs",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "submit:sitemap": "node scripts/auto-submit-sitemap.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
