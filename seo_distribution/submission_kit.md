@@ -1,56 +1,55 @@
-# GeminiWatermarkAI 外链分发与海外社区冷启动物料包 (Agent 5 Distribution Kit)
+# GeminiWatermarkAI 外链与 AI 导航站提交标准物料 (Submission Kit)
 
-本物料包专为 **`https://geminiwatermarkai.online`** 量身定制，用于新站上线第一周向全球 AI 导航站提交收录，并在 Reddit / X (Twitter) 执行“寄生截流”。
-
----
-
-## 一、AI 导航站与目录站标准提交物料 (AI Directories Submission)
-
-* **Tool Name**: GeminiWatermarkAI
-* **Website URL**: `https://geminiwatermarkai.online`
-* **Tagline**: Free Gemini Watermark Remover Online — 100% Client-Side, No Paywalls
-* **Pricing**: 100% Free (Zero subscriptions, zero $1 trials)
-* **Categories / Tags**: AI Tools, Image Tools, Gemini AI, Watermark Remover, Photo Editor, Free Web Apps
-* **Short Description** (80 words):
-  GeminiWatermarkAI is a 100% free, client-side web tool that instantly removes visible sparkle watermarks from Google Gemini AI images. Powered by mathematical Reverse Alpha Blending, it operates entirely within your browser memory—meaning zero server uploads, complete privacy, lossless original resolution, and zero paywalls.
-* **Detailed Description** (200 words):
-  Frustrated by the mandatory white sparkle watermark on Google Gemini-generated artwork, or tired of scammy websites charging $1 trials and $7 monthly subscriptions? GeminiWatermarkAI is built to solve this once and for all.
-  
-  Unlike generic AI inpainters that hallucinate blurred textures, GeminiWatermarkAI uses mathematically exact Reverse Alpha Blending. Because Google adds its four-pointed sparkle as a linear alpha-blended overlay, our client-side JavaScript engine algebraically inverts the equation to restore the authentic pixel data in less than 10 milliseconds.
-
-  Key Highlights:
-  - 100% Client-Side: Your pictures never leave your device.
-  - Zero Server Costs: Permanently free without credits or paywalls.
-  - Interactive Comparison: Compare before and after results with a built-in split slider.
-  - Lossless Export: Download full 4K+ resolution images with zero compression.
-* **Support Email**: `support@geminiwatermarkai.online`
+## 基础元数据 (Base Metadata)
+- **Product Name**: Gemini Watermark Remover (GeminiWatermarkAI)
+- **Website URL**: `https://geminiwatermarkai.online`
+- **GitHub Repository**: `https://github.com/SteveAiPro/geminiwatermarkai`
+- **Contact Email**: `support@geminiwatermarkai.online`
+- **Tagline**: `Free Online Google Gemini Watermark Remover - 100% Lossless, Client-Side, No Paywalls`
+- **Pricing**: Free (100% Free Forever, No Credit Card, No Subscription)
+- **Primary Category**: AI Image Tools / Utilities / AI Photo Editor / Watermark Remover
+- **Tags**: `Gemini Watermark Remover`, `Google Gemini`, `Imagen 3`, `AI Image Cleaner`, `Reverse Alpha Blending`, `Free AI Tools`
 
 ---
 
-## 二、Reddit 社区精准痛点种草贴文案 (Parasitic SEO)
+## 文本物料 (Text Assets)
 
-### 目标板块：
-`r/GeminiAI`, `r/Bard`, `r/ArtificialInteligence`, `r/ChatGPT`, `r/StableDiffusion`
+### Short Description (< 160 chars / 1 sentence)
+GeminiWatermarkAI is a free, 100% client-side tool to remove visible sparkle watermarks from Google Gemini AI images in 5ms with lossless quality.
 
-### 帖子标题（直击竞品收费痛点）：
-> **PSA: Don't pay $1 or $7/mo to remove Gemini watermarks — it can be mathematically reversed in your browser for free!**
+### Medium Description (< 300 chars)
+Instantly remove Google Gemini sparkle watermarks in your browser. Powered by mathematical Reverse Alpha Blending, GeminiWatermarkAI restores pristine pixels without generative hallucinations, zero server uploads, and no $1 paywalls.
 
-### 帖子正文：
-```markdown
-Hey everyone,
+### Detailed Description (Full Overview)
+GeminiWatermarkAI provides a completely free, privacy-first, client-side solution to erase visible 4-pointed star watermarks stamped on Google Gemini (Imagen 3) generated pictures. 
 
-I noticed a bunch of new websites (like geminiwatermark[.]io) popping up on Google claiming to remove Gemini's corner sparkle logo, but then hitting you with a $1 trial or $7/month paywall after you upload.
+Traditional inpainting tools hallucinate pixels and leave blurry smears, while commercial competitors charge $1 per single download. In contrast, GeminiWatermarkAI runs purely in your browser using high-speed HTML5 Canvas reverse alpha blending:
+- ⚡ **Sub-10ms Processing**: Mathematically cancels out the watermark layer in milliseconds.
+- 🛡 **100% Private**: Your pictures never touch any external server.
+- 🔍 **Multi-Scale Auto-Detection**: Automatically identifies adaptive insets (12.5% Inset, Classic 4.16%, Fixed 96px).
+- 🎛 **Interactive Fine-Tuning**: Real-time slider controls for offset, scale, and strength.
+- 💯 **Lossless Quality**: Preserves 100% of original image resolution and high-frequency textures.
 
-As an engineer, that honestly infuriated me because Google's watermark is just a static alpha-blended white sparkle. You don't need a cloud GPU or a neural network to fix it—you can literally invert the linear alpha formula:
-`P_original = (P_watermarked - alpha * 255) / (1 - alpha)`
+---
 
-I built **[GeminiWatermarkAI](https://geminiwatermarkai.online)** as a 100% free, open client-side web app.
-
-How it works:
-1. Everything runs in your browser via HTML5 Canvas (zero images are uploaded to any server, complete privacy).
-2. It takes ~5ms to compute.
-3. No sign up, no email, no credit cards, no paywall ever.
-4. Includes a before/after split slider so you can inspect the pixel restoration.
-
-Hope this saves some of you a few bucks! Let me know if you run into any weird aspect ratios or bugged images so I can update the alpha mask coordinates.
-```
+## 精选 20+ 全球头部免费外链与 AI 导航站目标清单
+1. Uneed.best (`https://www.uneed.best/submit`)
+2. TopAI.tools (`https://topai.tools/submit`)
+3. Futurepedia (`https://www.futurepedia.io/submit-tool`)
+4. AI Top Tools (`https://aitoptools.com/submit`)
+5. Dang.ai (`https://dang.ai/submit`)
+6. SaaSHub (`https://www.saashub.com/submit`)
+7. Toolify.ai (`https://www.toolify.ai/submit`)
+8. There's An AI For That (`https://theresanaiforthat.com/submit/`)
+9. AI Tools Directory (`https://aitoolsdirectory.com/submit-tool`)
+10. AIFindy (`https://aifindy.com/contacto/publica-tu-ia-en-aifindy`)
+11. FiveTaco (`https://fivetaco.com/submit`)
+12. PitchWall (`https://pitchwall.co/`)
+13. AI Tools Marketer (`https://aitoolsmarketer.com/submit/`)
+14. AILib (`https://ailib.ru/en/add-ai/free/`)
+15. ToolPilot (`https://www.toolpilot.ai/submit`)
+16. Insidr AI (`https://www.insidr.ai/submit-tools/`)
+17. FutureTools (`https://www.futuretools.io/submit-a-tool`)
+18. All Top Startups (`https://alltopstartups.com/submit-startup/`)
+19. SideProjectors (`https://www.sideprojectors.com/`)
+20. Startup Stash (`https://startupstash.com/submit/`)
