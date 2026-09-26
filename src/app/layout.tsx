@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://geminiwatermarkai.online"),
-  title: "Free Gemini Watermark Remover Online - 100% Client-Side, No Paywall | GeminiWatermarkAI",
-  description: "Instantly remove visible watermarks and sparkle logos from Google Gemini AI images for free. 100% client-side in-browser processing, zero server upload, lossless quality, and no paywall.",
+  title: "Free Gemini Watermark Remover Online - Lossless & Fast",
+  description: "Remove Google Gemini AI sparkle watermarks in 5ms. 100% free, in-browser processing, lossless quality, zero server uploads, and no paywall.",
   keywords: [
     "gemini watermark remover",
     "remove gemini watermark",
@@ -21,6 +21,16 @@ export const metadata: Metadata = {
     "reverse alpha blending gemini",
     "gemini watermark cleaner"
   ],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   alternates: {
     canonical: "https://geminiwatermarkai.online",
     languages: {
@@ -36,13 +46,13 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Free Gemini Watermark Remover Online - Lossless & 100% Free",
-    description: "Remove Google Gemini sparkle watermarks instantly in your browser. No server uploads, no sign-up, zero paywall.",
+    title: "Free Gemini Watermark Remover Online - Lossless & Fast",
+    description: "Remove Google Gemini AI sparkle watermarks in 5ms. 100% free, in-browser processing, lossless quality, and zero server uploads.",
     url: "https://geminiwatermarkai.online",
     siteName: "GeminiWatermarkAI",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://geminiwatermarkai.online/og-image.png",
         width: 1200,
         height: 630,
         alt: "Gemini Watermark Remover Preview",
@@ -53,9 +63,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free Gemini Watermark Remover Online - 100% Client-Side, No Paywall",
-    description: "Lossless in-browser reverse alpha blending to erase Gemini watermarks without hallucinations or subscriptions.",
-    images: ["/og-image.png"],
+    title: "Free Gemini Watermark Remover Online - Lossless & Fast",
+    description: "Remove Google Gemini AI sparkle watermarks in 5ms. 100% free, in-browser processing, lossless quality, and zero server uploads.",
+    images: ["https://geminiwatermarkai.online/og-image.png"],
   },
   robots: {
     index: true,
